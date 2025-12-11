@@ -21,12 +21,18 @@ function App() {
     detectBeat,
   } = useAudioStore();
 
-  // Setup persistent audio element
+  // Register audio element with store
+  useEffect(() => {
+    if (audioRef.current) {
+      setAudioElement(audioRef.current);
+    }
+  }, [setAudioElement]);
+
+  // Setup audio event handlers when URL changes
   useEffect(() => {
     if (!audioUrl || !audioRef.current) return;
 
     const audio = audioRef.current;
-    setAudioElement(audio);
 
     audio.onloadedmetadata = () => {
       setDuration(audio.duration);
@@ -58,13 +64,13 @@ function App() {
     };
 
     initAnalyzer();
-  }, [audioUrl, setAudioElement, setDuration, setCurrentTime, setIsPlaying, setAnalysis, detectBeat]);
+  }, [audioUrl, setDuration, setCurrentTime, setIsPlaying, setAnalysis, detectBeat]);
 
   if (mode === 'immersive') {
     return (
       <>
-        {/* Persistent audio element */}
-        {audioUrl && <audio ref={audioRef} src={audioUrl} />}
+        {/* Persistent audio element - always rendered */}
+        <audio ref={audioRef} src={audioUrl || undefined} />
         <ImmersiveViewer />
       </>
     );
@@ -72,8 +78,8 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-[var(--bg-void)] text-[var(--text-bright)] overflow-hidden">
-      {/* Persistent audio element */}
-      {audioUrl && <audio ref={audioRef} src={audioUrl} />}
+      {/* Persistent audio element - always rendered */}
+      <audio ref={audioRef} src={audioUrl || undefined} />
 
       {/* Main content area - stack on mobile, side-by-side on desktop */}
       <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">

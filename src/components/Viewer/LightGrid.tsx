@@ -236,14 +236,16 @@ export function LightGrid() {
       const colorA = colors[colorAIndex];
       const colorB = colors[colorBIndex];
 
-      const r = (colorA.r + (colorB.r - colorA.r) * colorT) * finalIntensity;
-      const g = (colorA.g + (colorB.g - colorA.g) * colorT) * finalIntensity;
-      const b = (colorA.b + (colorB.b - colorA.b) * colorT) * finalIntensity;
+      // Boost brightness by ~10%
+      const brightnessMult = 1.1;
+      const r = (colorA.r + (colorB.r - colorA.r) * colorT) * finalIntensity * brightnessMult;
+      const g = (colorA.g + (colorB.g - colorA.g) * colorT) * finalIntensity * brightnessMult;
+      const b = (colorA.b + (colorB.b - colorA.b) * colorT) * finalIntensity * brightnessMult;
 
       mesh.instanceColor!.setXYZ(i, r, g, b);
 
       if (glowMesh?.instanceColor) {
-        const glowI = finalIntensity * 0.6;
+        const glowI = finalIntensity * 0.7; // Increased from 0.6 to 0.7
         glowMesh.instanceColor.setXYZ(i, r * glowI, g * glowI, b * glowI);
       }
     }

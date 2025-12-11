@@ -4,7 +4,6 @@ import { useAudioStore } from '../../stores/audioStore';
 import { PatternType } from '../../patterns/types';
 import { TimelineClip } from './TimelineClip';
 import { PatternPalette } from './PatternPalette';
-import { audioAnalyzer } from '../../services/audioAnalyzer';
 
 const TRACK_HEIGHT = 48;
 const RULER_HEIGHT = 24;
@@ -12,7 +11,6 @@ const RULER_HEIGHT = 24;
 export function TimelineEditor() {
   const containerRef = useRef<HTMLDivElement>(null);
   const tracksRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
   const [isDraggingPattern, setIsDraggingPattern] = useState(false);
   const [isDraggingAudio, setIsDraggingAudio] = useState(false);
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
@@ -36,17 +34,11 @@ export function TimelineEditor() {
 
   const {
     audioFile,
-    audioUrl,
+    audioElement,
     duration: audioDuration,
     currentTime,
     isPlaying,
     setAudioFile,
-    setAudioElement,
-    setIsPlaying,
-    setCurrentTime,
-    setDuration,
-    setAnalysis,
-    detectBeat,
   } = useAudioStore();
 
   // Calculate timeline width based on audio duration
@@ -85,45 +77,6 @@ export function TimelineEditor() {
   const handleAudioFile = useCallback(async (file: File) => {
     setAudioFile(file);
   }, [setAudioFile]);
-
-  // Setup audio when URL changes
-  useEffect(() => {
-    if (!audioUrl || !audioRef.current) return;
-
-    const audio = audioRef.current;
-    setAudioElement(audio);
-
-    audio.onloadedmetadata = () => {
-      setDuration(audio.duration);
-    };
-
-    audio.ontimeupdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
-
-    audio.onplay = () => setIsPlaying(true);
-    audio.onpause = () => setIsPlaying(false);
-
-    // Initialize audio analyzer
-    const initAnalyzer = async () => {
-      await audioAnalyzer.initialize(audio);
-
-      // Start analysis loop
-      const analyzeLoop = () => {
-        if (!audio.paused) {
-          const analysis = audioAnalyzer.analyze();
-          setAnalysis(analysis);
-          if (analysis.amplitude > 0) {
-            detectBeat(analysis.amplitude);
-          }
-        }
-        requestAnimationFrame(analyzeLoop);
-      };
-      analyzeLoop();
-    };
-
-    initAnalyzer();
-  }, [audioUrl, setAudioElement, setDuration, setCurrentTime, setIsPlaying, setAnalysis, detectBeat]);
 
   // Handle audio drop
   const handleAudioDrop = (e: React.DragEvent) => {
@@ -167,13 +120,13 @@ export function TimelineEditor() {
 
   // Handle playhead click to seek
   const handleRulerClick = (e: React.MouseEvent) => {
-    if (!tracksRef.current || !audioRef.current) return;
+    if (!tracksRef.current || !audioElement) return;
 
     const rect = tracksRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left + scrollLeft;
     const time = Math.max(0, Math.min(audioDuration || 0, x / zoom));
 
-    audioRef.current.currentTime = time;
+    audioElement.currentTime = time;
   };
 
   // Handle playhead drag
@@ -187,13 +140,13 @@ export function TimelineEditor() {
     if (!isDraggingPlayhead) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!tracksRef.current || !audioRef.current) return;
+      if (!tracksRef.current || !audioElement) return;
 
       const rect = tracksRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left + scrollLeft;
       const time = Math.max(0, Math.min(audioDuration || 0, x / zoom));
 
-      audioRef.current.currentTime = time;
+      audioElement.currentTime = time;
     };
 
     const handleMouseUp = () => {
@@ -219,11 +172,11 @@ export function TimelineEditor() {
 
   // Play/Pause
   const togglePlayback = () => {
-    if (audioRef.current) {
+    if (audioElement) {
       if (isPlaying) {
-        audioRef.current.pause();
+        audioElement.pause();
       } else {
-        audioRef.current.play();
+        audioElement.play();
       }
     }
   };
@@ -234,8 +187,8 @@ export function TimelineEditor() {
 
   // Rewind to start
   const handleRewind = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
+    if (audioElement) {
+      audioElement.currentTime = 0;
     }
   };
 
@@ -266,8 +219,7 @@ export function TimelineEditor() {
 
   return (
     <div className="bg-[var(--bg-void)] border-t border-[var(--border-subtle)] flex flex-col">
-      {/* Hidden audio element */}
-      {audioUrl && <audio ref={audioRef} src={audioUrl} />}
+      {/* Audio element is managed by App.tsx for persistence across mode switches */}
 
       {/* Controls bar */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-deep)]">

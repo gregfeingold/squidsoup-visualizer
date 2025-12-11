@@ -1,18 +1,79 @@
+import { useEffect, useRef } from 'react';
 import { ControlPanel } from './components/ControlPanel';
 import { MiniViewer } from './components/Preview/MiniViewer';
 import { ImmersiveViewer } from './components/Viewer/ImmersiveViewer';
 import { TimelineEditor } from './components/Timeline';
 import { useViewerStore } from './stores/viewerStore';
+import { useAudioStore } from './stores/audioStore';
+import { audioAnalyzer } from './services/audioAnalyzer';
 
 function App() {
   const { mode, toggleMode } = useViewerStore();
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const {
+    audioUrl,
+    setAudioElement,
+    setIsPlaying,
+    setCurrentTime,
+    setDuration,
+    setAnalysis,
+    detectBeat,
+  } = useAudioStore();
+
+  // Setup persistent audio element
+  useEffect(() => {
+    if (!audioUrl || !audioRef.current) return;
+
+    const audio = audioRef.current;
+    setAudioElement(audio);
+
+    audio.onloadedmetadata = () => {
+      setDuration(audio.duration);
+    };
+
+    audio.ontimeupdate = () => {
+      setCurrentTime(audio.currentTime);
+    };
+
+    audio.onplay = () => setIsPlaying(true);
+    audio.onpause = () => setIsPlaying(false);
+
+    // Initialize audio analyzer
+    const initAnalyzer = async () => {
+      await audioAnalyzer.initialize(audio);
+
+      // Start analysis loop
+      const analyzeLoop = () => {
+        if (!audio.paused) {
+          const analysis = audioAnalyzer.analyze();
+          setAnalysis(analysis);
+          if (analysis.amplitude > 0) {
+            detectBeat(analysis.amplitude);
+          }
+        }
+        requestAnimationFrame(analyzeLoop);
+      };
+      analyzeLoop();
+    };
+
+    initAnalyzer();
+  }, [audioUrl, setAudioElement, setDuration, setCurrentTime, setIsPlaying, setAnalysis, detectBeat]);
 
   if (mode === 'immersive') {
-    return <ImmersiveViewer />;
+    return (
+      <>
+        {/* Persistent audio element */}
+        {audioUrl && <audio ref={audioRef} src={audioUrl} />}
+        <ImmersiveViewer />
+      </>
+    );
   }
 
   return (
     <div className="flex flex-col h-screen bg-[var(--bg-void)] text-[var(--text-bright)] overflow-hidden">
+      {/* Persistent audio element */}
+      {audioUrl && <audio ref={audioRef} src={audioUrl} />}
+
       {/* Main content area */}
       <div className="flex flex-1 min-h-0">
         {/* Control Panel - glass morphism sidebar */}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, Grid } from '@react-three/drei';
 import { LightGrid } from './LightGrid';
@@ -9,8 +9,22 @@ import { useAudioStore } from '../../stores/audioStore';
 
 export function ImmersiveViewer() {
   const [isLocked, setIsLocked] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const { toggleMode, showUI, setShowUI, toggleFullscreen, isFullscreen } = useViewerStore();
   const { isPlaying, analysis } = useAudioStore();
+
+  // Handle exit with proper cleanup
+  const handleExit = useCallback(() => {
+    setIsExiting(true);
+    // Exit pointer lock first
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    // Small delay to let cleanup happen before unmount
+    setTimeout(() => {
+      toggleMode();
+    }, 50);
+  }, [toggleMode]);
 
   const handlePointerLockChange = useCallback(() => {
     setIsLocked(document.pointerLockElement !== null);
@@ -20,13 +34,17 @@ export function ImmersiveViewer() {
     document.addEventListener('pointerlockchange', handlePointerLockChange);
     return () => {
       document.removeEventListener('pointerlockchange', handlePointerLockChange);
+      // Exit pointer lock when unmounting
+      if (document.pointerLockElement) {
+        document.exitPointerLock();
+      }
     };
   }, [handlePointerLockChange]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Escape' && !isLocked) {
-        toggleMode();
+      if (e.code === 'Escape' && !isLocked && !isExiting) {
+        handleExit();
       }
       if (e.code === 'KeyH') {
         setShowUI(!showUI);
@@ -40,13 +58,13 @@ export function ImmersiveViewer() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isLocked, toggleMode, showUI, setShowUI, toggleFullscreen]);
+  }, [isLocked, isExiting, handleExit, showUI, setShowUI, toggleFullscreen]);
 
   return (
     <div className="relative w-full h-full bg-[#1a1a1f]">
       <Canvas>
         <PerspectiveCamera makeDefault position={[0, 1.6, 12]} fov={75} />
-        <FirstPersonControls speed={5} enabled={true} />
+        <FirstPersonControls speed={5} enabled={!isExiting} />
 
         {/* Very dark ambient - concert darkness */}
         <ambientLight intensity={0.01} />
@@ -82,8 +100,9 @@ export function ImmersiveViewer() {
           {/* Top bar */}
           <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent">
             <button
-              onClick={toggleMode}
-              className="flex items-center gap-2 px-3 py-2 bg-black/60 hover:bg-black/80 border border-white/10 rounded-lg text-sm transition-colors"
+              onClick={handleExit}
+              disabled={isExiting}
+              className="flex items-center gap-2 px-3 py-2 bg-black/60 hover:bg-black/80 border border-white/10 rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

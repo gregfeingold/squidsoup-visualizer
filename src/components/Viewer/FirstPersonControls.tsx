@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { PointerLockControls as DreiPointerLockControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -91,6 +91,28 @@ export function FirstPersonControls({ speed = 5, enabled = true }: FirstPersonCo
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [enabled]);
+
+  // Disconnect controls when disabled or unmounting
+  useEffect(() => {
+    if (!enabled && controlsRef.current) {
+      // Unlock pointer if locked
+      if (document.pointerLockElement) {
+        document.exitPointerLock();
+      }
+      // Disconnect the controls to prevent further lock attempts
+      controlsRef.current.disconnect();
+    }
+
+    return () => {
+      // Cleanup on unmount
+      if (document.pointerLockElement) {
+        document.exitPointerLock();
+      }
+      if (controlsRef.current) {
+        controlsRef.current.disconnect();
+      }
     };
   }, [enabled]);
 

@@ -6,6 +6,7 @@ export class AudioAnalyzer {
   private sourceNode: MediaElementAudioSourceNode | null = null;
   private frequencyData: Uint8Array = new Uint8Array(0);
   private timeDomainData: Uint8Array = new Uint8Array(0);
+  private connectedElement: HTMLAudioElement | null = null;
 
   private lastBeatTime = 0;
   private beatThreshold = 0.65;
@@ -19,6 +20,17 @@ export class AudioAnalyzer {
   private readonly TREBLE_END = 200;   // ~4300Hz
 
   async initialize(audioElement: HTMLAudioElement): Promise<void> {
+    // If already connected to this element, just resume context
+    if (this.connectedElement === audioElement && this.audioContext) {
+      await this.audioContext.resume();
+      return;
+    }
+
+    // If connected to a different element, we need to destroy and recreate
+    if (this.connectedElement && this.connectedElement !== audioElement) {
+      this.destroy();
+    }
+
     // Create audio context
     this.audioContext = new AudioContext();
 
@@ -31,6 +43,9 @@ export class AudioAnalyzer {
     this.sourceNode = this.audioContext.createMediaElementSource(audioElement);
     this.sourceNode.connect(this.analyserNode);
     this.analyserNode.connect(this.audioContext.destination);
+
+    // Track the connected element
+    this.connectedElement = audioElement;
 
     // Initialize data arrays
     this.frequencyData = new Uint8Array(this.analyserNode.frequencyBinCount);
@@ -185,6 +200,7 @@ export class AudioAnalyzer {
     this.audioContext = null;
     this.analyserNode = null;
     this.sourceNode = null;
+    this.connectedElement = null;
     this.bpmHistory = [];
   }
 }

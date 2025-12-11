@@ -62,18 +62,16 @@ export function ImmersiveViewer() {
     };
   }, [isLocked, isExiting, handleExit, showUI, setShowUI, toggleFullscreen]);
 
-  // Mobile touch to activate gyroscope
-  const handleTouchStart = useCallback(() => {
-    if (useMobileControls && !gyroActive) {
-      setGyroActive(true);
-    }
-  }, [useMobileControls, gyroActive]);
+  // Callback when gyroscope becomes active
+  const handleGyroActive = useCallback((active: boolean) => {
+    setGyroActive(active);
+  }, []);
 
   return (
-    <div className="relative w-full h-full bg-[#1a1a1f]" onTouchStart={handleTouchStart}>
+    <div className="relative w-full h-full bg-[#1a1a1f]">
       <Canvas>
         <PerspectiveCamera makeDefault position={[0, 1.6, 12]} fov={75} />
-        <FirstPersonControls speed={5} enabled={!isExiting} />
+        <FirstPersonControls speed={5} enabled={!isExiting} onGyroActive={handleGyroActive} />
 
         {/* Very dark ambient - concert darkness */}
         <ambientLight intensity={0.01} />

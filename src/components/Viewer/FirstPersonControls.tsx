@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { PointerLockControls as DreiPointerLockControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -6,6 +6,7 @@ import * as THREE from 'three';
 interface FirstPersonControlsProps {
   speed?: number;
   enabled?: boolean;
+  onGyroActive?: (active: boolean) => void;
 }
 
 // Detect if device is mobile/tablet
@@ -15,15 +16,15 @@ export const isMobile = () => {
     (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
 };
 
-export function FirstPersonControls({ speed = 5, enabled = true }: FirstPersonControlsProps) {
+export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive }: FirstPersonControlsProps) {
   const controlsRef = useRef<any>(null);
   const { camera, gl } = useThree();
   const [useMobileControls] = useState(isMobile);
 
   // Gyroscope state
   const gyroEnabled = useRef(false);
+  const orientationData = useRef<{ alpha: number; beta: number; gamma: number } | null>(null);
   const initialOrientation = useRef<{ alpha: number; beta: number; gamma: number } | null>(null);
-  const euler = useRef(new THREE.Euler(0, 0, 0, 'YXZ'));
 
   // Movement state
   const moveState = useRef({
@@ -129,75 +130,99 @@ export function FirstPersonControls({ speed = 5, enabled = true }: FirstPersonCo
     };
   }, [enabled]);
 
-  // Mobile gyroscope controls
+  // Mobile gyroscope controls - store orientation data, apply in useFrame
   useEffect(() => {
     if (!useMobileControls || !enabled) return;
 
     const handleOrientation = (event: DeviceOrientationEvent) => {
-      if (!gyroEnabled.current) return;
-
       const { alpha, beta, gamma } = event;
       if (alpha === null || beta === null || gamma === null) return;
 
-      // Store initial orientation on first reading
-      if (!initialOrientation.current) {
+      // Store current orientation data
+      orientationData.current = { alpha, beta, gamma };
+
+      // Store initial orientation on first valid reading
+      if (!initialOrientation.current && gyroEnabled.current) {
         initialOrientation.current = { alpha, beta, gamma };
-        return;
       }
-
-      // Calculate relative rotation from initial position
-      const deltaAlpha = (alpha - initialOrientation.current.alpha) * Math.PI / 180;
-      const deltaBeta = (beta - initialOrientation.current.beta) * Math.PI / 180;
-
-      // Apply rotation to camera (inverted for natural feel)
-      euler.current.setFromQuaternion(camera.quaternion);
-      euler.current.y = -deltaAlpha;
-      euler.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, -deltaBeta * 0.5));
-      camera.quaternion.setFromEuler(euler.current);
     };
 
     // Request permission for iOS 13+
     const requestPermission = async () => {
-      if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-        try {
+      try {
+        if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+          // iOS 13+ requires permission
           const permission = await (DeviceOrientationEvent as any).requestPermission();
           if (permission === 'granted') {
             gyroEnabled.current = true;
-            window.addEventListener('deviceorientation', handleOrientation);
+            onGyroActive?.(true);
+            window.addEventListener('deviceorientation', handleOrientation, true);
+          } else {
+            console.log('Gyroscope permission denied');
           }
-        } catch (e) {
-          console.log('Gyroscope permission denied');
+        } else {
+          // Android and other devices - just add listener
+          gyroEnabled.current = true;
+          onGyroActive?.(true);
+          window.addEventListener('deviceorientation', handleOrientation, true);
         }
-      } else {
-        // Non-iOS devices
-        gyroEnabled.current = true;
-        window.addEventListener('deviceorientation', handleOrientation);
+      } catch (e) {
+        console.log('Gyroscope error:', e);
       }
     };
 
-    // Start on first touch
-    const handleTouch = () => {
+    // Handle touch to request permission (must be user-initiated for iOS)
+    const handleTouch = (e: TouchEvent) => {
       if (!gyroEnabled.current) {
+        e.preventDefault();
         requestPermission();
       }
-      gl.domElement.removeEventListener('touchstart', handleTouch);
     };
 
-    gl.domElement.addEventListener('touchstart', handleTouch);
+    // Listen on document for touch events
+    document.addEventListener('touchstart', handleTouch, { once: true, passive: false });
 
     return () => {
-      gl.domElement.removeEventListener('touchstart', handleTouch);
-      window.removeEventListener('deviceorientation', handleOrientation);
+      document.removeEventListener('touchstart', handleTouch);
+      window.removeEventListener('deviceorientation', handleOrientation, true);
       gyroEnabled.current = false;
+      orientationData.current = null;
       initialOrientation.current = null;
     };
-  }, [useMobileControls, enabled, camera, gl]);
+  }, [useMobileControls, enabled, onGyroActive]);
 
-  // Update movement each frame
+  // Update movement and gyroscope each frame
   useFrame((_, delta) => {
     // Desktop requires pointer lock, mobile uses gyroscope (always "active")
     const isActive = useMobileControls ? gyroEnabled.current : controlsRef.current?.isLocked;
     if (!isActive || !enabled) return;
+
+    // Apply gyroscope rotation for mobile
+    if (useMobileControls && orientationData.current && initialOrientation.current) {
+      const { alpha, beta, gamma } = orientationData.current;
+      const initial = initialOrientation.current;
+
+      // Calculate delta from initial orientation
+      let deltaAlpha = alpha - initial.alpha;
+      let deltaBeta = beta - initial.beta;
+
+      // Handle alpha wraparound (0-360 degrees)
+      if (deltaAlpha > 180) deltaAlpha -= 360;
+      if (deltaAlpha < -180) deltaAlpha += 360;
+
+      // Convert to radians and apply sensitivity
+      const yaw = -deltaAlpha * (Math.PI / 180) * 1.0;   // Left/right rotation
+      const pitch = -deltaBeta * (Math.PI / 180) * 0.5;  // Up/down rotation
+
+      // Create rotation from device orientation
+      const euler = new THREE.Euler(
+        Math.max(-Math.PI / 3, Math.min(Math.PI / 3, pitch)), // Clamp pitch
+        yaw,
+        0,
+        'YXZ'
+      );
+      camera.quaternion.setFromEuler(euler);
+    }
 
     const state = moveState.current;
 

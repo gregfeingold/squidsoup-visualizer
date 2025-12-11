@@ -11,7 +11,7 @@ const STEP_CONTENT: Record<WalkthroughStep, TooltipContent | null> = {
   welcome: null, // Handled by WelcomeModal
   'pattern-input': {
     title: 'Create Your First Pattern',
-    description: 'Describe a light pattern in natural language, like "waves rippling from center" or "fireworks exploding upward". Click Generate to create it!',
+    description: 'Start with one of our preset patterns below! To describe your own custom patterns, you\'ll need to add a Claude API key in the input field.',
   },
   'color-scheme': {
     title: 'Choose Your Colors',
@@ -19,11 +19,11 @@ const STEP_CONTENT: Record<WalkthroughStep, TooltipContent | null> = {
   },
   'audio-upload': {
     title: 'Add Your Music',
-    description: 'Upload an audio file to make your patterns react to the beat. The visualizer analyzes bass, mids, and treble in real-time.',
+    description: 'Upload an audio file to sync your light show to music. Each pattern has a toggle to make it audio-reactive, responding to bass, mids, and treble in real-time.',
   },
   timeline: {
     title: 'Sequence Your Patterns',
-    description: 'Drag patterns onto the timeline to choreograph your light show. Resize clips to control timing.',
+    description: 'String together different patterns to create a full light show for a performance. Drag patterns onto the timeline and resize clips to control timing.',
   },
   immersive: {
     title: 'Enter the Experience',

@@ -39,7 +39,8 @@ export const useWalkthroughStore = create<WalkthroughStore>()(
       isActive: false,
 
       startWalkthrough: () => {
-        set({ isActive: true, currentStep: 'welcome' });
+        // Start at pattern-input since welcome is handled by the modal
+        set({ isActive: true, currentStep: 'pattern-input' });
       },
 
       nextStep: () => {

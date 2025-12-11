@@ -38,7 +38,7 @@ export function WelcomeModal() {
           <div className="flex items-center gap-3 mb-6">
             <div className="w-3 h-3 rounded-sm bg-[var(--accent-electric)] glow-electric" />
             <h1 className="font-display text-2xl sm:text-3xl tracking-wide text-[var(--text-bright)]">
-              SUBMERGENCE
+              GREGSOUP
             </h1>
           </div>
 

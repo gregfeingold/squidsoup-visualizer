@@ -13,7 +13,7 @@ export function ControlPanel() {
         <div className="flex items-center gap-2 sm:gap-3 lg:mb-2">
           <div className="w-2 sm:w-3 h-2 sm:h-3 rounded-sm bg-[var(--accent-electric)] glow-electric" />
           <h1 className="font-display text-lg sm:text-3xl tracking-wide text-[var(--text-bright)] whitespace-nowrap">
-            SUBMERGENCE
+            GREGSOUP
           </h1>
         </div>
         <p className="hidden lg:block text-xs sm:text-sm text-[var(--text-dim)] pl-4 sm:pl-6">

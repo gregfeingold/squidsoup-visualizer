@@ -1,7 +1,44 @@
+import { useState, useEffect } from 'react';
 import { usePatternStore } from '../../stores/patternStore';
 
 export function GridConfigurator() {
   const { gridConfig, setGridConfig } = usePatternStore();
+
+  // Local state for dimension inputs to allow clearing
+  const [localDims, setLocalDims] = useState({
+    width: String(gridConfig.dimensions.width),
+    height: String(gridConfig.dimensions.height),
+    depth: String(gridConfig.dimensions.depth),
+  });
+
+  // Sync local state when store changes externally
+  useEffect(() => {
+    setLocalDims({
+      width: String(gridConfig.dimensions.width),
+      height: String(gridConfig.dimensions.height),
+      depth: String(gridConfig.dimensions.depth),
+    });
+  }, [gridConfig.dimensions.width, gridConfig.dimensions.height, gridConfig.dimensions.depth]);
+
+  const handleDimensionChange = (dim: 'width' | 'height' | 'depth', value: string) => {
+    setLocalDims(prev => ({ ...prev, [dim]: value }));
+  };
+
+  const handleDimensionBlur = (dim: 'width' | 'height' | 'depth') => {
+    const value = parseInt(localDims[dim]);
+    const defaults = { width: 20, height: 10, depth: 20 };
+    const mins = { width: 5, height: 5, depth: 5 };
+    const maxs = { width: 50, height: 30, depth: 50 };
+
+    if (isNaN(value) || value < mins[dim]) {
+      setLocalDims(prev => ({ ...prev, [dim]: String(defaults[dim]) }));
+      setGridConfig({ dimensions: { ...gridConfig.dimensions, [dim]: defaults[dim] } });
+    } else {
+      const clamped = Math.min(value, maxs[dim]);
+      setLocalDims(prev => ({ ...prev, [dim]: String(clamped) }));
+      setGridConfig({ dimensions: { ...gridConfig.dimensions, [dim]: clamped } });
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -78,26 +115,22 @@ export function GridConfigurator() {
           <div>
             <label className="font-mono text-[9px] text-[var(--text-dim)]/50 block mb-1">W</label>
             <input
-              type="number"
-              min={5}
-              max={50}
-              value={gridConfig.dimensions.width}
-              onChange={(e) => setGridConfig({
-                dimensions: { ...gridConfig.dimensions, width: parseInt(e.target.value) || 20 }
-              })}
+              type="text"
+              inputMode="numeric"
+              value={localDims.width}
+              onChange={(e) => handleDimensionChange('width', e.target.value)}
+              onBlur={() => handleDimensionBlur('width')}
               className="w-full px-2 py-1.5 bg-[var(--bg-void)] border border-[var(--border-subtle)] rounded font-mono text-xs text-center text-[var(--text-mid)] focus:border-[var(--accent-electric)] focus:outline-none"
             />
           </div>
           <div>
             <label className="font-mono text-[9px] text-[var(--text-dim)]/50 block mb-1">H</label>
             <input
-              type="number"
-              min={5}
-              max={30}
-              value={gridConfig.dimensions.height}
-              onChange={(e) => setGridConfig({
-                dimensions: { ...gridConfig.dimensions, height: parseInt(e.target.value) || 10 }
-              })}
+              type="text"
+              inputMode="numeric"
+              value={localDims.height}
+              onChange={(e) => handleDimensionChange('height', e.target.value)}
+              onBlur={() => handleDimensionBlur('height')}
               className="w-full px-2 py-1.5 bg-[var(--bg-void)] border border-[var(--border-subtle)] rounded font-mono text-xs text-center text-[var(--text-mid)] focus:border-[var(--accent-electric)] focus:outline-none"
             />
           </div>
@@ -105,13 +138,11 @@ export function GridConfigurator() {
             <div>
               <label className="font-mono text-[9px] text-[var(--text-dim)]/50 block mb-1">D</label>
               <input
-                type="number"
-                min={5}
-                max={50}
-                value={gridConfig.dimensions.depth}
-                onChange={(e) => setGridConfig({
-                  dimensions: { ...gridConfig.dimensions, depth: parseInt(e.target.value) || 20 }
-                })}
+                type="text"
+                inputMode="numeric"
+                value={localDims.depth}
+                onChange={(e) => handleDimensionChange('depth', e.target.value)}
+                onBlur={() => handleDimensionBlur('depth')}
                 className="w-full px-2 py-1.5 bg-[var(--bg-void)] border border-[var(--border-subtle)] rounded font-mono text-xs text-center text-[var(--text-mid)] focus:border-[var(--accent-electric)] focus:outline-none"
               />
             </div>

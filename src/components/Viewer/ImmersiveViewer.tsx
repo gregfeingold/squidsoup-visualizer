@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, Grid } from '@react-three/drei';
 import { LightGrid } from './LightGrid';
-import { FirstPersonControls } from './FirstPersonControls';
+import { FirstPersonControls, isMobile } from './FirstPersonControls';
 import { ConcertEnvironment } from './ConcertEnvironment';
 import { useViewerStore } from '../../stores/viewerStore';
 import { useAudioStore } from '../../stores/audioStore';
@@ -10,6 +10,8 @@ import { useAudioStore } from '../../stores/audioStore';
 export function ImmersiveViewer() {
   const [isLocked, setIsLocked] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [gyroActive, setGyroActive] = useState(false);
+  const [useMobileControls] = useState(isMobile);
   const { toggleMode, showUI, setShowUI, toggleFullscreen, isFullscreen } = useViewerStore();
   const { isPlaying, analysis } = useAudioStore();
 
@@ -60,8 +62,15 @@ export function ImmersiveViewer() {
     };
   }, [isLocked, isExiting, handleExit, showUI, setShowUI, toggleFullscreen]);
 
+  // Mobile touch to activate gyroscope
+  const handleTouchStart = useCallback(() => {
+    if (useMobileControls && !gyroActive) {
+      setGyroActive(true);
+    }
+  }, [useMobileControls, gyroActive]);
+
   return (
-    <div className="relative w-full h-full bg-[#1a1a1f]">
+    <div className="relative w-full h-full bg-[#1a1a1f]" onTouchStart={handleTouchStart}>
       <Canvas>
         <PerspectiveCamera makeDefault position={[0, 1.6, 12]} fov={75} />
         <FirstPersonControls speed={5} enabled={!isExiting} />
@@ -150,22 +159,35 @@ export function ImmersiveViewer() {
           </div>
 
           {/* Bottom instructions */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-            <div className="flex items-center justify-center gap-6 text-sm text-white/60">
-              {!isLocked && (
-                <span className="animate-pulse text-white/80">Click anywhere to look around</span>
-              )}
-              {isLocked && (
-                <>
-                  <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">WASD</kbd> Move</span>
-                  <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">Space</kbd> Up</span>
-                  <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">Shift</kbd> Down</span>
-                  <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">ESC</kbd> Release mouse</span>
-                </>
-              )}
-              <span className="border-l border-white/20 pl-6"><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">H</kbd> Hide UI</span>
-              <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">F</kbd> Fullscreen</span>
-            </div>
+          <div className="absolute bottom-0 left-0 right-0 p-4 pb-safe bg-gradient-to-t from-black/70 to-transparent">
+            {useMobileControls ? (
+              /* Mobile instructions */
+              <div className="flex flex-col items-center gap-3 text-sm text-white/60">
+                {!gyroActive && (
+                  <span className="animate-pulse text-white/80">Tap anywhere to enable gyroscope controls</span>
+                )}
+                {gyroActive && (
+                  <span className="text-white/80">Tilt device to look around</span>
+                )}
+              </div>
+            ) : (
+              /* Desktop instructions */
+              <div className="flex items-center justify-center gap-6 text-sm text-white/60">
+                {!isLocked && (
+                  <span className="animate-pulse text-white/80">Click anywhere to look around</span>
+                )}
+                {isLocked && (
+                  <>
+                    <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">WASD</kbd> Move</span>
+                    <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">Space</kbd> Up</span>
+                    <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">Shift</kbd> Down</span>
+                    <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">ESC</kbd> Release mouse</span>
+                  </>
+                )}
+                <span className="border-l border-white/20 pl-6"><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">H</kbd> Hide UI</span>
+                <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">F</kbd> Fullscreen</span>
+              </div>
+            )}
           </div>
         </>
       )}

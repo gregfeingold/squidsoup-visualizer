@@ -5,22 +5,22 @@ import { PatternList } from './PatternList';
 
 export function ControlPanel() {
   return (
-    <div className="h-full overflow-y-auto p-3 sm:p-5 space-y-3 sm:space-y-6 relative">
-      {/* Header */}
-      <div className="pb-2 sm:pb-4 border-b border-[var(--border-subtle)]">
-        <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+    <div className="lg:h-full lg:overflow-y-auto p-3 sm:p-5 space-y-2 sm:space-y-6 relative">
+      {/* Header - inline on mobile */}
+      <div className="flex lg:flex-col items-center lg:items-start gap-3 lg:gap-0 pb-2 sm:pb-4 border-b border-[var(--border-subtle)]">
+        <div className="flex items-center gap-2 sm:gap-3 lg:mb-2">
           <div className="w-2 sm:w-3 h-2 sm:h-3 rounded-sm bg-[var(--accent-electric)] glow-electric" />
-          <h1 className="font-display text-xl sm:text-3xl tracking-wide text-[var(--text-bright)]">
+          <h1 className="font-display text-lg sm:text-3xl tracking-wide text-[var(--text-bright)] whitespace-nowrap">
             SUBMERGENCE
           </h1>
         </div>
-        <p className="text-xs sm:text-sm text-[var(--text-dim)] pl-4 sm:pl-6">
+        <p className="hidden lg:block text-xs sm:text-sm text-[var(--text-dim)] pl-4 sm:pl-6">
           Light grid visualizer inspired by Squidsoup
         </p>
       </div>
 
       {/* Sections - horizontal scroll on mobile, stacked on desktop */}
-      <div className="flex lg:flex-col gap-3 sm:gap-5 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 -mx-3 px-3 lg:mx-0 lg:px-0">
+      <div className="flex lg:flex-col gap-3 sm:gap-5 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 -mx-3 px-3 lg:mx-0 lg:px-0 scrollbar-hide">
         {/* Pattern Generation */}
         <section className="panel p-3 sm:p-4 space-y-2 sm:space-y-4 min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-2">

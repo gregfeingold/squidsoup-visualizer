@@ -77,7 +77,7 @@ function App() {
       {/* Main content area - stack on mobile, side-by-side on desktop */}
       <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
         {/* Control Panel - full width on mobile, fixed width on desktop */}
-        <div className="w-full lg:w-[380px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--border-subtle)] bg-[var(--bg-deep)] relative max-h-[40vh] lg:max-h-none overflow-y-auto">
+        <div className="w-full lg:w-[380px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--border-subtle)] bg-[var(--bg-deep)] relative h-auto lg:h-full lg:overflow-y-auto">
           <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,255,136,0.02)] to-transparent pointer-events-none" />
           <ControlPanel />
         </div>

@@ -79,13 +79,7 @@ export function ImmersiveViewer() {
         {/* Dense fog for atmosphere */}
         <fog attach="fog" args={['#1a1a1f', 20, 60]} />
 
-        {/* Solid ground plane - bright cyan */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-          <planeGeometry args={[200, 200]} />
-          <meshBasicMaterial color="#006080" />
-        </mesh>
-
-        {/* Grid lines on top */}
+        {/* Grid floor - bright cyan lines */}
         <Grid
           position={[0, 0, 0]}
           args={[100, 100]}

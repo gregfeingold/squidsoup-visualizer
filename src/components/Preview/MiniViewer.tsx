@@ -22,21 +22,15 @@ export function MiniViewer() {
       {/* Fog for atmosphere */}
       <fog attach="fog" args={['#1a1a1f', 35, 90]} />
 
-      {/* Solid ground plane - bright cyan */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-        <planeGeometry args={[200, 200]} />
-        <meshBasicMaterial color="#006080" />
-      </mesh>
-
-      {/* Grid lines on top */}
+      {/* Grid floor - bright cyan lines */}
       <Grid
         position={[0, 0, 0]}
         args={[50, 50]}
         cellSize={2}
-        cellThickness={0.6}
+        cellThickness={0.5}
         cellColor="#00aacc"
         sectionSize={10}
-        sectionThickness={1}
+        sectionThickness={0.8}
         sectionColor="#00ddff"
         fadeDistance={50}
         fadeStrength={1}

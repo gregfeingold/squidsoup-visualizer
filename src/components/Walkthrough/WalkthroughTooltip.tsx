@@ -48,7 +48,11 @@ export function WalkthroughTooltip({ step, children }: WalkthroughTooltipProps) 
   // Calculate tooltip position based on element location
   useEffect(() => {
     if (isCurrentStep && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
+      // With display:contents, we need to get the first child element's rect
+      const targetElement = containerRef.current.firstElementChild as HTMLElement | null;
+      if (!targetElement) return;
+
+      const rect = targetElement.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
@@ -69,7 +73,7 @@ export function WalkthroughTooltip({ step, children }: WalkthroughTooltipProps) 
       setTooltipPosition({ top, left });
 
       // Scroll element into view
-      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [isCurrentStep]);
 
@@ -77,12 +81,26 @@ export function WalkthroughTooltip({ step, children }: WalkthroughTooltipProps) 
     return <>{children}</>;
   }
 
+  // For the highlight ring, we add it via portal overlay instead of wrapping
   return (
-    <div ref={containerRef} className="relative">
-      {/* Highlight ring when active */}
-      <div className={`${isCurrentStep ? 'ring-2 ring-[var(--accent-electric)] ring-offset-2 ring-offset-[var(--bg-deep)] rounded-lg' : ''}`}>
+    <>
+      <div ref={containerRef} style={{ display: 'contents' }}>
         {children}
       </div>
+
+      {/* Highlight ring overlay - rendered via portal */}
+      {isCurrentStep && containerRef.current && createPortal(
+        <div
+          className="fixed pointer-events-none z-[9998] ring-2 ring-[var(--accent-electric)] ring-offset-2 ring-offset-[var(--bg-deep)] rounded-lg"
+          style={{
+            top: containerRef.current.firstElementChild?.getBoundingClientRect().top ?? 0,
+            left: containerRef.current.firstElementChild?.getBoundingClientRect().left ?? 0,
+            width: containerRef.current.firstElementChild?.getBoundingClientRect().width ?? 0,
+            height: containerRef.current.firstElementChild?.getBoundingClientRect().height ?? 0,
+          }}
+        />,
+        document.body
+      )}
 
       {/* Tooltip - rendered via portal to avoid overflow issues */}
       {isCurrentStep && createPortal(
@@ -120,6 +138,6 @@ export function WalkthroughTooltip({ step, children }: WalkthroughTooltipProps) 
         </div>,
         document.body
       )}
-    </div>
+    </>
   );
 }

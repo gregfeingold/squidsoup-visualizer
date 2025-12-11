@@ -1,16 +1,15 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAudioStore } from '../../stores/audioStore';
 import { audioAnalyzer } from '../../services/audioAnalyzer';
 
 export function AudioUploader() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const animationRef = useRef<number>(0);
   const [isDragging, setIsDragging] = useState(false);
 
   const {
     audioFile,
     audioUrl,
+    audioElement,
     isPlaying,
     currentTime,
     duration,
@@ -18,8 +17,6 @@ export function AudioUploader() {
     setAudioFile,
     setIsPlaying,
     setCurrentTime,
-    setDuration,
-    setAnalysis,
   } = useAudioStore();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,69 +49,27 @@ export function AudioUploader() {
     }
   };
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !audioUrl) return;
-
-    audio.src = audioUrl;
-
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-    };
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-    };
-
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
-
-    audioAnalyzer.initialize(audio);
-
-    return () => {
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
-    };
-  }, [audioUrl, setDuration, setIsPlaying]);
-
-  const updateAnalysis = useCallback(() => {
-    const audio = audioRef.current;
-    if (audio && isPlaying) {
-      setCurrentTime(audio.currentTime);
-      const analysisData = audioAnalyzer.analyze();
-      setAnalysis(analysisData);
-    }
-    animationRef.current = requestAnimationFrame(updateAnalysis);
-  }, [isPlaying, setCurrentTime, setAnalysis]);
-
-  useEffect(() => {
-    if (isPlaying) {
-      animationRef.current = requestAnimationFrame(updateAnalysis);
-    }
-    return () => {
-      cancelAnimationFrame(animationRef.current);
-    };
-  }, [isPlaying, updateAnalysis]);
-
-  const togglePlayPause = () => {
-    const audio = audioRef.current;
-    if (!audio || !audioUrl) return;
+  const togglePlayPause = async () => {
+    if (!audioElement || !audioUrl) return;
 
     if (isPlaying) {
-      audio.pause();
+      audioElement.pause();
     } else {
-      audioAnalyzer.resume();
-      audio.play();
+      // Resume audio context if suspended (browser autoplay policy)
+      await audioAnalyzer.resume();
+      try {
+        await audioElement.play();
+      } catch (e) {
+        console.error('Failed to play audio:', e);
+      }
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    if (!audioElement) return;
 
     const time = parseFloat(e.target.value);
-    audio.currentTime = time;
+    audioElement.currentTime = time;
     setCurrentTime(time);
   };
 
@@ -126,9 +81,6 @@ export function AudioUploader() {
 
   return (
     <div className="space-y-4">
-      {/* Hidden audio element */}
-      <audio ref={audioRef} className="hidden" />
-
       {/* File upload */}
       <input
         ref={fileInputRef}

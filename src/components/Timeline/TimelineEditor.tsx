@@ -221,17 +221,17 @@ export function TimelineEditor() {
     <div className="bg-[var(--bg-void)] border-t border-[var(--border-subtle)] flex flex-col">
       {/* Audio element is managed by App.tsx for persistence across mode switches */}
 
-      {/* Controls bar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-deep)]">
-        <div className="flex items-center gap-3">
+      {/* Controls bar - responsive */}
+      <div className="flex items-center justify-between px-2 sm:px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-deep)] gap-2">
+        <div className="flex items-center gap-1 sm:gap-3">
           {/* Rewind */}
           <button
             onClick={handleRewind}
             disabled={!audioFile}
-            className="w-8 h-8 flex items-center justify-center rounded bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] disabled:opacity-50 disabled:cursor-not-allowed"
             title="Rewind to start"
           >
-            <svg className="w-4 h-4 text-[var(--text-mid)]" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--text-mid)]" fill="currentColor" viewBox="0 0 24 24">
               <path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z" />
             </svg>
           </button>
@@ -240,56 +240,56 @@ export function TimelineEditor() {
           <button
             onClick={togglePlayback}
             disabled={!audioFile}
-            className="w-8 h-8 flex items-center justify-center rounded bg-[var(--accent-electric)] hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded bg-[var(--accent-electric)] hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isPlaying ? (
-              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
               </svg>
             ) : (
-              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             )}
           </button>
 
           {/* Current time */}
-          <span className="font-mono text-sm text-[var(--text-bright)] min-w-[100px]">
+          <span className="font-mono text-xs sm:text-sm text-[var(--text-bright)] min-w-[70px] sm:min-w-[100px]">
             {formatTime(currentTime)} / {formatTime(audioDuration || 0)}
           </span>
 
           {/* Timeline mode toggle */}
           <button
             onClick={() => setTimelineMode(!isTimelineMode)}
-            className={`px-3 py-1 rounded text-xs font-mono transition-colors ${
+            className={`px-2 sm:px-3 py-1 rounded text-[10px] sm:text-xs font-mono transition-colors whitespace-nowrap ${
               isTimelineMode
                 ? 'bg-[var(--accent-electric)] text-white'
                 : 'bg-[var(--bg-surface)] text-[var(--text-dim)] hover:text-[var(--text-mid)]'
             }`}
           >
-            Timeline {isTimelineMode ? 'ON' : 'OFF'}
+            <span className="hidden xs:inline">Timeline</span> {isTimelineMode ? 'ON' : 'OFF'}
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Clear button */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Clear button - hidden on mobile */}
           <button
             onClick={clearTimeline}
-            className="px-2 py-1 rounded text-xs font-mono text-[var(--text-dim)] hover:text-[var(--accent-hot)] hover:bg-[var(--bg-surface)] transition-colors"
+            className="hidden sm:block px-2 py-1 rounded text-xs font-mono text-[var(--text-dim)] hover:text-[var(--accent-hot)] hover:bg-[var(--bg-surface)] transition-colors"
           >
             Clear
           </button>
 
-          {/* Zoom controls */}
-          <div className="flex items-center gap-1 bg-[var(--bg-surface)] rounded px-2 py-1">
-            <button onClick={handleZoomOut} className="text-[var(--text-dim)] hover:text-[var(--text-bright)]">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Zoom controls - simplified on mobile */}
+          <div className="flex items-center gap-1 bg-[var(--bg-surface)] rounded px-1 sm:px-2 py-1">
+            <button onClick={handleZoomOut} className="text-[var(--text-dim)] hover:text-[var(--text-bright)] p-0.5">
+              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
               </svg>
             </button>
-            <span className="text-xs font-mono text-[var(--text-mid)] w-12 text-center">{zoom}px/s</span>
-            <button onClick={handleZoomIn} className="text-[var(--text-dim)] hover:text-[var(--text-bright)]">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="hidden sm:inline text-xs font-mono text-[var(--text-mid)] w-12 text-center">{zoom}px/s</span>
+            <button onClick={handleZoomIn} className="text-[var(--text-dim)] hover:text-[var(--text-bright)] p-0.5">
+              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </button>

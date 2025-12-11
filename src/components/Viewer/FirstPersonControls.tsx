@@ -167,10 +167,25 @@ export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive, g
     };
   }, [useMobileControls, enabled, onGyroActive, gyroPermissionGranted]);
 
+  // Track if we just became active to preserve camera height
+  const wasActive = useRef(false);
+  const savedHeight = useRef(1.6);
+
   // Update movement and gyroscope each frame
   useFrame((_, delta) => {
     // Desktop requires pointer lock, mobile uses gyroscope (always "active")
     const isActive = useMobileControls ? gyroEnabled.current : controlsRef.current?.isLocked;
+
+    // Save height before becoming inactive, restore when becoming active
+    if (!isActive && wasActive.current) {
+      savedHeight.current = camera.position.y;
+    }
+    if (isActive && !wasActive.current) {
+      // Just became active - ensure we're at proper height
+      camera.position.y = Math.max(savedHeight.current, 1.6);
+    }
+    wasActive.current = isActive;
+
     if (!isActive || !enabled) return;
 
     // Apply gyroscope rotation for mobile

@@ -178,25 +178,31 @@ export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive, g
       const { alpha, beta, gamma } = orientationData.current;
       const initial = initialOrientation.current;
 
-      // Calculate delta from initial orientation
-      let deltaAlpha = alpha - initial.alpha;
-      let deltaBeta = beta - initial.beta;
+      // For phone held upright (portrait mode):
+      // - beta: tilt forward/back (0 = flat, 90 = upright facing user)
+      // - gamma: tilt left/right (-90 to 90)
+      // - alpha: compass heading (0-360)
 
-      // Handle alpha wraparound (0-360 degrees)
+      // Calculate yaw delta from initial heading
+      let deltaAlpha = alpha - initial.alpha;
       if (deltaAlpha > 180) deltaAlpha -= 360;
       if (deltaAlpha < -180) deltaAlpha += 360;
 
-      // Convert to radians and apply sensitivity
-      const yaw = -deltaAlpha * (Math.PI / 180) * 1.0;   // Left/right rotation
-      const pitch = -deltaBeta * (Math.PI / 180) * 0.5;  // Up/down rotation
+      // When phone is upright (~90 beta), tilting forward/back changes beta
+      // We want: tilt phone forward = look down, tilt back = look up
+      // Beta at 90 = looking straight, >90 = looking down, <90 = looking up
+      const baseBeta = 90; // Assume phone is held upright
+      const pitchDelta = beta - baseBeta;
 
-      // Create rotation from device orientation
-      const euler = new THREE.Euler(
-        Math.max(-Math.PI / 3, Math.min(Math.PI / 3, pitch)), // Clamp pitch
-        yaw,
-        0,
-        'YXZ'
-      );
+      // Convert to radians
+      const yaw = -deltaAlpha * (Math.PI / 180);
+      const pitch = -pitchDelta * (Math.PI / 180);
+
+      // Clamp pitch to reasonable range (don't flip over)
+      const clampedPitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
+
+      // Create rotation - YXZ order for FPS-style camera
+      const euler = new THREE.Euler(clampedPitch, yaw, 0, 'YXZ');
       camera.quaternion.setFromEuler(euler);
     }
 

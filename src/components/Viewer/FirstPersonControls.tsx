@@ -174,36 +174,36 @@ export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive, g
     if (!isActive || !enabled) return;
 
     // Apply gyroscope rotation for mobile
+    // Uses the standard WebXR/three.js approach for device orientation
     if (useMobileControls && orientationData.current && initialOrientation.current) {
       const { alpha, beta, gamma } = orientationData.current;
       const initial = initialOrientation.current;
 
-      // For phone held upright (portrait mode):
-      // - beta: tilt forward/back (0 = flat, 90 = upright facing user)
-      // - gamma: tilt left/right (-90 to 90)
-      // - alpha: compass heading (0-360)
+      // Convert degrees to radians
+      const alphaRad = THREE.MathUtils.degToRad(alpha);
+      const betaRad = THREE.MathUtils.degToRad(beta);
+      const gammaRad = THREE.MathUtils.degToRad(gamma);
+      const initialAlphaRad = THREE.MathUtils.degToRad(initial.alpha);
 
-      // Calculate yaw delta from initial heading
-      let deltaAlpha = alpha - initial.alpha;
-      if (deltaAlpha > 180) deltaAlpha -= 360;
-      if (deltaAlpha < -180) deltaAlpha += 360;
+      // Standard device orientation to camera rotation
+      // This mimics how three.js DeviceOrientationControls works
+      const euler = new THREE.Euler();
+      const quaternion = new THREE.Quaternion();
+      const q0 = new THREE.Quaternion();
+      const q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5)); // -90 deg around X
 
-      // When phone is upright (~90 beta), tilting forward/back changes beta
-      // We want: tilt phone forward = look down, tilt back = look up
-      // Beta at 90 = looking straight, >90 = looking down, <90 = looking up
-      const baseBeta = 90; // Assume phone is held upright
-      const pitchDelta = beta - baseBeta;
+      // Set rotation order for device orientation
+      euler.set(betaRad, alphaRad, -gammaRad, 'YXZ');
+      quaternion.setFromEuler(euler);
 
-      // Convert to radians
-      const yaw = -deltaAlpha * (Math.PI / 180);
-      const pitch = -pitchDelta * (Math.PI / 180);
+      // Rotate to align with screen orientation (portrait)
+      quaternion.multiply(q1);
 
-      // Clamp pitch to reasonable range (don't flip over)
-      const clampedPitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
+      // Apply offset so initial orientation = looking forward
+      q0.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -initialAlphaRad);
+      quaternion.premultiply(q0);
 
-      // Create rotation - YXZ order for FPS-style camera
-      const euler = new THREE.Euler(clampedPitch, yaw, 0, 'YXZ');
-      camera.quaternion.setFromEuler(euler);
+      camera.quaternion.copy(quaternion);
     }
 
     const state = moveState.current;

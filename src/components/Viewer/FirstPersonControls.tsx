@@ -249,9 +249,9 @@ export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive, g
     }
     camera.position.y += velocity.current.y * delta;
 
-    // Keep within bounds
+    // Keep within bounds - maintain head height (1.6m) as minimum
     camera.position.x = THREE.MathUtils.clamp(camera.position.x, -25, 25);
-    camera.position.y = THREE.MathUtils.clamp(camera.position.y, 0.5, 15);
+    camera.position.y = THREE.MathUtils.clamp(camera.position.y, 1.6, 15);
     camera.position.z = THREE.MathUtils.clamp(camera.position.z, -25, 25);
   });
 

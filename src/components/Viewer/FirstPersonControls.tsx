@@ -7,6 +7,7 @@ interface FirstPersonControlsProps {
   speed?: number;
   enabled?: boolean;
   onGyroActive?: (active: boolean) => void;
+  gyroPermissionGranted?: boolean;
 }
 
 // Detect if device is mobile/tablet
@@ -16,7 +17,7 @@ export const isMobile = () => {
     (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
 };
 
-export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive }: FirstPersonControlsProps) {
+export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive, gyroPermissionGranted = false }: FirstPersonControlsProps) {
   const controlsRef = useRef<any>(null);
   const { camera, gl } = useThree();
   const [useMobileControls] = useState(isMobile);
@@ -130,7 +131,7 @@ export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive }:
     };
   }, [enabled]);
 
-  // Mobile gyroscope controls - store orientation data, apply in useFrame
+  // Mobile gyroscope controls - listen for orientation when permission granted
   useEffect(() => {
     if (!useMobileControls || !enabled) return;
 
@@ -142,60 +143,29 @@ export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive }:
       orientationData.current = { alpha, beta, gamma };
 
       // Store initial orientation on first valid reading
-      if (!initialOrientation.current && gyroEnabled.current) {
+      if (!initialOrientation.current) {
         initialOrientation.current = { alpha, beta, gamma };
       }
-    };
 
-    // Request permission for iOS 13+
-    const requestPermission = async () => {
-      if (gyroEnabled.current) return; // Already enabled
-
-      try {
-        if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-          // iOS 13+ requires permission
-          const permission = await (DeviceOrientationEvent as any).requestPermission();
-          if (permission === 'granted') {
-            gyroEnabled.current = true;
-            onGyroActive?.(true);
-            window.addEventListener('deviceorientation', handleOrientation, true);
-          } else {
-            console.log('Gyroscope permission denied');
-          }
-        } else {
-          // Android and other devices - just add listener
-          gyroEnabled.current = true;
-          onGyroActive?.(true);
-          window.addEventListener('deviceorientation', handleOrientation, true);
-        }
-      } catch (e) {
-        console.log('Gyroscope error:', e);
-      }
-    };
-
-    // Handle touch/click to request permission (must be user-initiated for iOS)
-    const handleInteraction = () => {
+      // Mark as active once we get valid data
       if (!gyroEnabled.current) {
-        requestPermission();
+        gyroEnabled.current = true;
+        onGyroActive?.(true);
       }
     };
 
-    // Listen on both canvas element and document for better coverage
-    const canvas = gl.domElement;
-    canvas.addEventListener('touchstart', handleInteraction, { passive: true });
-    canvas.addEventListener('click', handleInteraction);
-    document.addEventListener('touchstart', handleInteraction, { passive: true });
+    // Start listening when permission is granted (from parent component)
+    if (gyroPermissionGranted) {
+      window.addEventListener('deviceorientation', handleOrientation, true);
+    }
 
     return () => {
-      canvas.removeEventListener('touchstart', handleInteraction);
-      canvas.removeEventListener('click', handleInteraction);
-      document.removeEventListener('touchstart', handleInteraction);
       window.removeEventListener('deviceorientation', handleOrientation, true);
       gyroEnabled.current = false;
       orientationData.current = null;
       initialOrientation.current = null;
     };
-  }, [useMobileControls, enabled, onGyroActive, gl.domElement]);
+  }, [useMobileControls, enabled, onGyroActive, gyroPermissionGranted]);
 
   // Update movement and gyroscope each frame
   useFrame((_, delta) => {

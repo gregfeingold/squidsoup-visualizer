@@ -11,6 +11,8 @@ export function ImmersiveViewer() {
   const [isLocked, setIsLocked] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [gyroActive, setGyroActive] = useState(false);
+  const [gyroError, setGyroError] = useState<string | null>(null);
+  const [gyroPermissionGranted, setGyroPermissionGranted] = useState(false);
   const [useMobileControls] = useState(isMobile);
   const { toggleMode, showUI, setShowUI, toggleFullscreen, isFullscreen } = useViewerStore();
   const { isPlaying, analysis } = useAudioStore();
@@ -67,11 +69,42 @@ export function ImmersiveViewer() {
     setGyroActive(active);
   }, []);
 
+  // Request gyroscope permission (must be called from user interaction)
+  const requestGyroPermission = useCallback(async () => {
+    if (gyroPermissionGranted) return;
+
+    try {
+      // Check if DeviceOrientationEvent exists
+      if (!('DeviceOrientationEvent' in window)) {
+        setGyroError('Gyroscope not supported');
+        return;
+      }
+
+      // iOS 13+ requires explicit permission request
+      if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+        const permission = await (DeviceOrientationEvent as any).requestPermission();
+        if (permission === 'granted') {
+          setGyroPermissionGranted(true);
+          setGyroError(null);
+        } else {
+          setGyroError('Permission denied');
+        }
+      } else {
+        // Android/other - permission not required, just mark as granted
+        setGyroPermissionGranted(true);
+        setGyroError(null);
+      }
+    } catch (e) {
+      console.error('Gyroscope permission error:', e);
+      setGyroError('Failed to enable');
+    }
+  }, [gyroPermissionGranted]);
+
   return (
     <div className="relative w-full h-full bg-[#1a1a1f]">
       <Canvas>
         <PerspectiveCamera makeDefault position={[0, 1.6, 12]} fov={75} />
-        <FirstPersonControls speed={5} enabled={!isExiting} onGyroActive={handleGyroActive} />
+        <FirstPersonControls speed={5} enabled={!isExiting} onGyroActive={handleGyroActive} gyroPermissionGranted={gyroPermissionGranted} />
 
         {/* Very dark ambient - concert darkness */}
         <ambientLight intensity={0.01} />
@@ -161,8 +194,16 @@ export function ImmersiveViewer() {
             {useMobileControls ? (
               /* Mobile instructions */
               <div className="flex flex-col items-center gap-3 text-sm text-white/60">
-                {!gyroActive && (
-                  <span className="animate-pulse text-white/80">Tap anywhere to enable gyroscope controls</span>
+                {!gyroActive && !gyroError && (
+                  <button
+                    onClick={requestGyroPermission}
+                    className="px-6 py-3 bg-[var(--accent-electric)] text-[var(--bg-void)] font-semibold rounded-lg text-base animate-pulse"
+                  >
+                    Tap to Enable Gyroscope
+                  </button>
+                )}
+                {gyroError && (
+                  <span className="text-red-400">{gyroError}</span>
                 )}
                 {gyroActive && (
                   <span className="text-white/80">Tilt device to look around</span>

@@ -149,6 +149,8 @@ export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive }:
 
     // Request permission for iOS 13+
     const requestPermission = async () => {
+      if (gyroEnabled.current) return; // Already enabled
+
       try {
         if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
           // iOS 13+ requires permission
@@ -171,25 +173,29 @@ export function FirstPersonControls({ speed = 5, enabled = true, onGyroActive }:
       }
     };
 
-    // Handle touch to request permission (must be user-initiated for iOS)
-    const handleTouch = (e: TouchEvent) => {
+    // Handle touch/click to request permission (must be user-initiated for iOS)
+    const handleInteraction = () => {
       if (!gyroEnabled.current) {
-        e.preventDefault();
         requestPermission();
       }
     };
 
-    // Listen on document for touch events
-    document.addEventListener('touchstart', handleTouch, { once: true, passive: false });
+    // Listen on both canvas element and document for better coverage
+    const canvas = gl.domElement;
+    canvas.addEventListener('touchstart', handleInteraction, { passive: true });
+    canvas.addEventListener('click', handleInteraction);
+    document.addEventListener('touchstart', handleInteraction, { passive: true });
 
     return () => {
-      document.removeEventListener('touchstart', handleTouch);
+      canvas.removeEventListener('touchstart', handleInteraction);
+      canvas.removeEventListener('click', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
       window.removeEventListener('deviceorientation', handleOrientation, true);
       gyroEnabled.current = false;
       orientationData.current = null;
       initialOrientation.current = null;
     };
-  }, [useMobileControls, enabled, onGyroActive]);
+  }, [useMobileControls, enabled, onGyroActive, gl.domElement]);
 
   // Update movement and gyroscope each frame
   useFrame((_, delta) => {

@@ -5,7 +5,7 @@ import { ConcertEnvironment } from '../Viewer/ConcertEnvironment';
 
 export function MiniViewer() {
   return (
-    <Canvas className="bg-[#1a1a1f]">
+    <Canvas className="bg-[#1a1a1f]" style={{ position: 'relative', zIndex: 0 }}>
       <PerspectiveCamera makeDefault position={[20, 12, 20]} fov={50} />
       <OrbitControls
         enablePan={true}
@@ -22,16 +22,22 @@ export function MiniViewer() {
       {/* Fog for atmosphere */}
       <fog attach="fog" args={['#1a1a1f', 35, 90]} />
 
-      {/* Grid floor for reference - bright cyan/teal */}
+      {/* Solid ground plane - bright cyan */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+        <planeGeometry args={[200, 200]} />
+        <meshBasicMaterial color="#006080" />
+      </mesh>
+
+      {/* Grid lines on top */}
       <Grid
         position={[0, 0, 0]}
         args={[50, 50]}
         cellSize={2}
-        cellThickness={0.5}
-        cellColor="#0088aa"
+        cellThickness={0.6}
+        cellColor="#00aacc"
         sectionSize={10}
-        sectionThickness={0.8}
-        sectionColor="#00ccff"
+        sectionThickness={1}
+        sectionColor="#00ddff"
         fadeDistance={50}
         fadeStrength={1}
         infiniteGrid

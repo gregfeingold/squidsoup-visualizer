@@ -79,16 +79,22 @@ export function ImmersiveViewer() {
         {/* Dense fog for atmosphere */}
         <fog attach="fog" args={['#1a1a1f', 20, 60]} />
 
-        {/* Grid floor - bright cyan/teal for visibility */}
+        {/* Solid ground plane - bright cyan */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+          <planeGeometry args={[200, 200]} />
+          <meshBasicMaterial color="#006080" />
+        </mesh>
+
+        {/* Grid lines on top */}
         <Grid
           position={[0, 0, 0]}
           args={[100, 100]}
           cellSize={2}
-          cellThickness={0.4}
-          cellColor="#0088aa"
+          cellThickness={0.5}
+          cellColor="#00aacc"
           sectionSize={10}
-          sectionThickness={0.6}
-          sectionColor="#00ccff"
+          sectionThickness={0.8}
+          sectionColor="#00ddff"
           fadeDistance={40}
           fadeStrength={1}
           infiniteGrid

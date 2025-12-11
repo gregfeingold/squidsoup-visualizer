@@ -78,13 +78,13 @@ function App() {
       {/* Main content area - stack on mobile, side-by-side on desktop */}
       <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
         {/* Control Panel - full width on mobile, fixed width on desktop */}
-        <div className="w-full lg:w-[380px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--border-subtle)] bg-[var(--bg-deep)] relative h-auto lg:h-full lg:overflow-y-auto">
+        <div className="w-full lg:w-[380px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--border-subtle)] bg-[var(--bg-deep)] relative z-20 h-auto lg:h-full lg:overflow-y-auto">
           <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,255,136,0.02)] to-transparent pointer-events-none" />
           <ControlPanel />
         </div>
 
         {/* Preview Area */}
-        <div className="flex-1 flex flex-col relative scanline-overlay min-w-0 min-h-0">
+        <div className="flex-1 flex flex-col relative z-10 scanline-overlay min-w-0 min-h-0">
           {/* Header - simplified on mobile */}
           <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-4 border-b border-[var(--border-subtle)] bg-[var(--bg-deep)]/80 backdrop-blur-sm">
             <div className="flex items-center gap-2 sm:gap-6">

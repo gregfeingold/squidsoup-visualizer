@@ -79,16 +79,16 @@ export function ImmersiveViewer() {
         {/* Dense fog for atmosphere */}
         <fog attach="fog" args={['#1a1a1f', 20, 60]} />
 
-        {/* No grid floor in immersive - just darkness below */}
+        {/* Grid floor - lighter blue for visibility */}
         <Grid
           position={[0, 0, 0]}
           args={[100, 100]}
           cellSize={2}
           cellThickness={0.2}
-          cellColor="#050510"
+          cellColor="#1a2a3a"
           sectionSize={10}
           sectionThickness={0.3}
-          sectionColor="#0a0a20"
+          sectionColor="#2a4a6a"
           fadeDistance={40}
           fadeStrength={1}
           infiniteGrid

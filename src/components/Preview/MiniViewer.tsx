@@ -22,16 +22,16 @@ export function MiniViewer() {
       {/* Fog for atmosphere */}
       <fog attach="fog" args={['#1a1a1f', 35, 90]} />
 
-      {/* Grid floor for reference */}
+      {/* Grid floor for reference - lighter blue */}
       <Grid
         position={[0, 0, 0]}
         args={[50, 50]}
         cellSize={2}
         cellThickness={0.3}
-        cellColor="#0a0a15"
+        cellColor="#1a2a3a"
         sectionSize={10}
         sectionThickness={0.5}
-        sectionColor="#15152a"
+        sectionColor="#2a4a6a"
         fadeDistance={50}
         fadeStrength={1}
         infiniteGrid

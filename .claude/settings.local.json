@@ -15,7 +15,8 @@
       "Bash(npm run build:*)",
       "Bash(gh auth status:*)",
       "Bash(npx vercel:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

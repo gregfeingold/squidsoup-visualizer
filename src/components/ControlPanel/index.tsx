@@ -2,6 +2,8 @@ import { PatternInput } from './PatternInput';
 import { ColorSchemeSelector } from './ColorSchemeSelector';
 import { GridConfigurator } from './GridConfigurator';
 import { PatternList } from './PatternList';
+import { AudioUploader } from './AudioUploader';
+import { WalkthroughTooltip } from '../Walkthrough';
 
 export function ControlPanel() {
   return (
@@ -22,15 +24,17 @@ export function ControlPanel() {
       {/* Sections - horizontal scroll on mobile, stacked on desktop */}
       <div className="flex lg:flex-col gap-3 sm:gap-5 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 -mx-3 px-3 lg:mx-0 lg:px-0 scrollbar-hide">
         {/* Pattern Generation */}
-        <section className="panel p-3 sm:p-4 space-y-2 sm:space-y-4 min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-3 sm:h-4 bg-[var(--accent-electric)] rounded-full" />
-            <h2 className="font-display text-sm sm:text-lg tracking-wide text-[var(--text-mid)]">
-              PATTERN ENGINE
-            </h2>
-          </div>
-          <PatternInput />
-        </section>
+        <WalkthroughTooltip step="pattern-input">
+          <section className="panel p-3 sm:p-4 space-y-2 sm:space-y-4 min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-3 sm:h-4 bg-[var(--accent-electric)] rounded-full" />
+              <h2 className="font-display text-sm sm:text-lg tracking-wide text-[var(--text-mid)]">
+                PATTERN ENGINE
+              </h2>
+            </div>
+            <PatternInput />
+          </section>
+        </WalkthroughTooltip>
 
         {/* Active Patterns */}
         <section className="panel p-3 sm:p-4 space-y-2 sm:space-y-4 min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
@@ -44,15 +48,30 @@ export function ControlPanel() {
         </section>
 
         {/* Color Scheme */}
-        <section className="panel p-3 sm:p-4 space-y-2 sm:space-y-4 min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-3 sm:h-4 bg-[var(--accent-hot)] rounded-full" />
-            <h2 className="font-display text-sm sm:text-lg tracking-wide text-[var(--text-mid)]">
-              COLOR PALETTE
-            </h2>
-          </div>
-          <ColorSchemeSelector />
-        </section>
+        <WalkthroughTooltip step="color-scheme">
+          <section className="panel p-3 sm:p-4 space-y-2 sm:space-y-4 min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-3 sm:h-4 bg-[var(--accent-hot)] rounded-full" />
+              <h2 className="font-display text-sm sm:text-lg tracking-wide text-[var(--text-mid)]">
+                COLOR PALETTE
+              </h2>
+            </div>
+            <ColorSchemeSelector />
+          </section>
+        </WalkthroughTooltip>
+
+        {/* Audio Upload */}
+        <WalkthroughTooltip step="audio-upload">
+          <section className="panel p-3 sm:p-4 space-y-2 sm:space-y-4 min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-3 sm:h-4 bg-[var(--accent-warm)] rounded-full" />
+              <h2 className="font-display text-sm sm:text-lg tracking-wide text-[var(--text-mid)]">
+                AUDIO
+              </h2>
+            </div>
+            <AudioUploader />
+          </section>
+        </WalkthroughTooltip>
 
         {/* Grid Config */}
         <section className="panel p-3 sm:p-4 space-y-2 sm:space-y-4 min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">

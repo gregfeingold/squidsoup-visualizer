@@ -3,6 +3,7 @@ import { ControlPanel } from './components/ControlPanel';
 import { MiniViewer } from './components/Preview/MiniViewer';
 import { ImmersiveViewer } from './components/Viewer/ImmersiveViewer';
 import { TimelineEditor } from './components/Timeline';
+import { WelcomeModal, WalkthroughTooltip } from './components/Walkthrough';
 import { useViewerStore } from './stores/viewerStore';
 import { useAudioStore } from './stores/audioStore';
 import { audioAnalyzer } from './services/audioAnalyzer';
@@ -96,16 +97,18 @@ function App() {
               </span>
             </div>
 
-            <button
-              onClick={toggleMode}
-              className="group flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2 sm:py-2.5 btn-primary rounded-lg text-xs sm:text-sm uppercase tracking-wider"
-            >
-              <svg className="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              <span className="hidden xs:inline">Enter</span> Experience
-            </button>
+            <WalkthroughTooltip step="immersive">
+              <button
+                onClick={toggleMode}
+                className="group flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2 sm:py-2.5 btn-primary rounded-lg text-xs sm:text-sm uppercase tracking-wider"
+              >
+                <svg className="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span className="hidden xs:inline">Enter</span> Experience
+              </button>
+            </WalkthroughTooltip>
           </div>
 
           {/* 3D Preview */}
@@ -122,7 +125,12 @@ function App() {
       </div>
 
       {/* Timeline Editor - bottom bar */}
-      <TimelineEditor />
+      <WalkthroughTooltip step="timeline">
+        <TimelineEditor />
+      </WalkthroughTooltip>
+
+      {/* Welcome Modal for first-time users */}
+      <WelcomeModal />
     </div>
   );
 }
